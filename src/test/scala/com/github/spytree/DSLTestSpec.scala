@@ -40,6 +40,7 @@ with WordSpecLike with Matchers with BeforeAndAfterAll with DefaultShutdown {
         }
       }).materialize
 
+
       val fakeSender: ActorRef = system.actorOf(Props(classOf[FakeSenderActor],"/user/root/parent/child-1/grand-child-1"))
 
       fakeSender ! "ping"
