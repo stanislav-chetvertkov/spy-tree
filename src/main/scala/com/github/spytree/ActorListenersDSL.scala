@@ -2,6 +2,8 @@ package com.github.spytree
 
 import akka.actor.Actor.Receive
 import akka.actor._
+import akka.testkit.TestKit
+import org.scalatest.BeforeAndAfterAll
 
 import scala.concurrent.Await
 
@@ -10,6 +12,14 @@ trait DefaultShutdown {
 
   override def afterAll() {
     shutdown()
+  }
+}
+
+class FakeSenderActor(selection:String) extends Actor with ActorLogging {
+  override def receive: Receive = {
+    case "ping" =>
+      log.info("pinging")
+      context.system.actorSelection(selection) ! "Ping"
   }
 }
 

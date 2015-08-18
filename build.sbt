@@ -1,19 +1,23 @@
-import com.typesafe.sbt.packager.archetypes.JavaAppPackaging
+name := "spytree"
 
-name := """spytree"""
-
-version := "2.0"
+version := "0.01"
 
 organization in ThisBuild := "com.github"
 
 scalaVersion := "2.11.6"
 
+resolvers += "Typesafe repository mwn" at "http://repo.typesafe.com/typesafe/maven-releases/"
+
+resolvers += "Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/"
+
 libraryDependencies ++= Seq(
-  "com.typesafe.akka" %% "akka-actor" % "2.3.11",
+  "com.typesafe.akka" %% "akka-testkit" % "2.4-M3",
 
-  "com.typesafe.akka" %% "akka-testkit" % "2.3.11" % "test",
-  "org.scalatest" %% "scalatest" % "2.2.4" % "test")
+  "com.typesafe.akka" % "akka-actor_2.11" % "2.4-M3",
+
+  "org.scalatest" %% "scalatest" % "2.2.4")
 
 
-enablePlugins(JavaAppPackaging)
+
+
 

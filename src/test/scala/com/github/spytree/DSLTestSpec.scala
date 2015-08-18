@@ -5,21 +5,13 @@ import akka.testkit.{DefaultTimeout, ImplicitSender, TestKit}
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
 
-class FakeSenderActor(selection:String) extends Actor with ActorLogging {
-  override def receive: Receive = {
-    case "ping" =>
-      log.info("pinging")
-      context.system.actorSelection(selection) ! "Ping"
-  }
-}
-
 class DSLTestSpec extends TestKit(ActorSystem("actorSystem"))
 with DefaultTimeout with ImplicitSender
 with WordSpecLike with Matchers with BeforeAndAfterAll with DefaultShutdown {
 
 
   "The DSL" must {
-    "be awesome" in {
+    "work with simple hierarchies" in {
 
       import com.github.spytree.ActorListenersDSL._
 
