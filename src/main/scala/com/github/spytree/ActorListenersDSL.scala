@@ -2,6 +2,7 @@ package com.github.spytree
 
 import akka.actor.Actor.Receive
 import akka.actor._
+import akka.contrib.pattern.ReceivePipeline
 import akka.testkit.TestKit
 import org.scalatest.BeforeAndAfterAll
 
@@ -15,7 +16,7 @@ trait DefaultShutdown {
   }
 }
 
-class FakeSenderActor(selection:String) extends Actor with ActorLogging {
+class FakeSenderActor(selection: String) extends Actor with ActorLogging {
   override def receive: Receive = {
     case "ping" =>
       log.info("pinging")
@@ -45,51 +46,6 @@ object ActorListenersDSL {
    */
   case class Response(path: String, message: Any)
 
-  /**
-   * used for requesting test hierarchy readiness status
-   */
-  case object GetStatus
-
-  /**
-   * Used for creating a test hierarchy
-   * Signal from child that it is completely initialized
-   * means that child itself and all its children are ready
-   * @param path
-   */
-  case class Ready(path: String)
-
-  trait ChildCreator {
-    this: Actor =>
-
-    def default: Receive
-
-    def getChildren: List[NodeBuilder]
-
-    val childRefs = getChildren.map(child => context.actorOf(propByNode(child), child.path))
-
-    var childSet: Set[String] = getChildren.map(c => c.path).toSet
-
-    childRefs.foreach(child => child ! GetStatus)
-
-    var respondRef: ActorRef = _
-
-    override def receive: Actor.Receive = {
-      case Ready(path) =>
-        //        println("Ready:" + path)
-        childSet -= path
-        if (childSet.isEmpty) {
-          respondRef ! Ready(self.path.name)
-          context.become(default)
-        }
-      case GetStatus =>
-        respondRef = sender()
-        if (childSet.isEmpty) {
-          respondRef ! Ready(self.path.name)
-          context.become(default)
-        }
-    }
-  }
-
 
   /**
    * Silent actor - does not respond to any messages, just a placeholder
@@ -112,20 +68,44 @@ object ActorListenersDSL {
 
   /**
    * Actor with custom Implementation
-   * @param children
-   * @param implementation
+   * @param children - list of children
+   * @param implementation - custom implementation
    */
-  class CustomImplementationActor(children: List[NodeBuilder], implementation: Receive) extends Actor with ChildCreator with ActorLogging {
+  class CustomImplementationActor(children: List[NodeBuilder], implementation: Receive, listener: Option[ActorRef]) extends Actor
+  with ChildCreator with ActorLogging with ReceivePipeline {
+
     println(akka.serialization.Serialization.serializedActorPath(self))
 
-    override def default: Actor.Receive = implementation
+    private def respond: Actor.Receive = {
+      case message: Any =>
+        val path = akka.serialization.Serialization.serializedActorPath(self)
+        listener.get ! Response(path, message)
+        message
+    }
+
+//    pipelineInner {
+//      case msg: Any =>
+//        println("Message:" + msg)
+//        val path = akka.serialization.Serialization.serializedActorPath(self)
+//        listener.get ! Response(path, msg)
+//    }
+
+    override def default: Actor.Receive = {
+      implementation
+      listener match {
+        case Some(ref) => respond andThen implementation
+        case None => implementation
+      }
+
+    }
 
     override def getChildren: List[NodeBuilder] = children
+
   }
 
   object CustomImplementationActor {
     def props(listener: ActorRef, children: List[NodeBuilder], implementation: Receive) = Props(classOf[CustomImplementationActor],
-      children, implementation)
+      children, implementation, Option(listener))
   }
 
 
@@ -176,14 +156,14 @@ object ActorListenersDSL {
      * Create actors in the actor system based on NodeBuilder
      * @param system - actor system for materialisation
      *
-     * Note: this is a blocking call - it returns when the hierarchy is completely initialize
+     *               Note: this is a blocking call - it returns when the hierarchy is completely initialize
      */
     def materialize(implicit system: ActorSystem): Unit = {
       val rootRef = system.actorOf(propByNode(this), path)
       import akka.pattern.ask
       import akka.util.Timeout
 
-import scala.concurrent.duration._
+      import scala.concurrent.duration._
 
       implicit val timeout = Timeout(5 seconds)
 

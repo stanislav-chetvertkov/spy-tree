@@ -54,7 +54,46 @@ with WordSpecLike with Matchers with BeforeAndAfterAll with DefaultShutdown {
     }
 
     "handle custom implementation" in {
-      //TODO
+      import com.github.spytree.ActorListenersDSL._
+
+      val tree = "parent" >> {
+        "child" replyTo self withImplementation {
+          case message: Any =>
+            self ! "PONG"
+        }
+      }
+      tree.materialize
+
+      val fakeSender = system.actorOf(Props(classOf[FakeSenderActor],"/user/parent/child"))
+      fakeSender ! "ping"
+
+      var gotSpyReply:Boolean = false
+      var gotCustomReply:Boolean = false
+
+      expectMsgPF() {
+        case Response(path, message) =>
+          path.contains("/parent/child") should be
+          message should be("Ping")
+          gotSpyReply = true
+        case "PONG" =>
+          println("PONG")
+          gotCustomReply = true
+      }
+
+      expectMsgPF() {
+        case Response(path, message) =>
+          path.contains("/parent/child") should be
+          message should be("Ping")
+          gotSpyReply = true
+        case "PONG" =>
+          println("PONG")
+          gotCustomReply = true
+      }
+
+      gotCustomReply shouldBe true
+      gotSpyReply shouldBe true
+
+
     }
 
   }
