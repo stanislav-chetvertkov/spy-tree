@@ -3,26 +3,8 @@ package com.github.spytree
 import akka.actor.Actor.Receive
 import akka.actor._
 import akka.contrib.pattern.ReceivePipeline
-import akka.testkit.TestKit
-import org.scalatest.BeforeAndAfterAll
 
 import scala.concurrent.Await
-
-trait DefaultShutdown {
-  this: TestKit with BeforeAndAfterAll =>
-
-  override def afterAll() {
-    shutdown()
-  }
-}
-
-class FakeSenderActor(selection: String) extends Actor with ActorLogging {
-  override def receive: Receive = {
-    case "ping" =>
-      log.info("pinging")
-      context.system.actorSelection(selection) ! "Ping"
-  }
-}
 
 object ActorListenersDSL {
 
@@ -163,7 +145,7 @@ object ActorListenersDSL {
       import akka.pattern.ask
       import akka.util.Timeout
 
-      import scala.concurrent.duration._
+import scala.concurrent.duration._
 
       implicit val timeout = Timeout(5 seconds)
 

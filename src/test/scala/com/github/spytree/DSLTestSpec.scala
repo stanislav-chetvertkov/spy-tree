@@ -17,9 +17,9 @@ with WordSpecLike with Matchers with BeforeAndAfterAll with DefaultShutdown {
 
       ("generatorManager" >> {"sipRouter" replyTo self}).materialize
 
-      val fakeSender: ActorRef = system.actorOf(Props(classOf[FakeSenderActor],"/user/generatorManager/sipRouter"))
+      val fakeSender: ActorRef = system.actorOf(FakeSenderActor.props("/user/generatorManager/sipRouter", "Ping"))
 
-      fakeSender ! "ping"
+      fakeSender ! Activate
 
       expectMsgPF() {
         case Response(path, message) =>
@@ -41,9 +41,9 @@ with WordSpecLike with Matchers with BeforeAndAfterAll with DefaultShutdown {
       }).materialize
 
 
-      val fakeSender: ActorRef = system.actorOf(Props(classOf[FakeSenderActor],"/user/root/parent/child-1/grand-child-1"))
+      val fakeSender: ActorRef = system.actorOf(FakeSenderActor.props("/user/root/parent/child-1/grand-child-1", "Ping"))
 
-      fakeSender ! "ping"
+      fakeSender ! Activate
 
       expectMsgPF() {
         case Response(path, message) =>
@@ -64,8 +64,9 @@ with WordSpecLike with Matchers with BeforeAndAfterAll with DefaultShutdown {
       }
       tree.materialize
 
-      val fakeSender = system.actorOf(Props(classOf[FakeSenderActor],"/user/parent/child"))
-      fakeSender ! "ping"
+      val fakeSender = system.actorOf(FakeSenderActor.props("/user/parent/child", "Ping"))
+
+      fakeSender ! Activate
 
       var gotSpyReply:Boolean = false
       var gotCustomReply:Boolean = false
