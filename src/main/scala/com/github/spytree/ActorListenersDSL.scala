@@ -26,7 +26,7 @@ object ActorListenersDSL {
    * @param path - path in the actor system
    * @param message - message that actor received
    */
-  case class Response(path: String, message: Any)
+  case class Response[T](path: String, message: T)
 
 
   /**
@@ -65,7 +65,6 @@ object ActorListenersDSL {
         message
     }
 
-
     override def default: Actor.Receive = {
       implementation()
       listener match {
@@ -91,7 +90,7 @@ object ActorListenersDSL {
    * @param listener - listener to respond to
    */
   class RespondingActor(children: List[NodeBuilder], listener: ActorRef) extends Actor with ChildCreator with ActorLogging {
-    log.debug(akka.serialization.Serialization.serializedActorPath(self))
+    println(akka.serialization.Serialization.serializedActorPath(self))
 
     override def default: Actor.Receive = {
       case message: Any =>
