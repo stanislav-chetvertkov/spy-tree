@@ -4,8 +4,8 @@ import akka.testkit.TestKit
 import org.scalatest.BeforeAndAfterAll
 
 /**
- * Adding shutdown implementation for TestKit
- */
+  * Adding shutdown implementation for TestKit
+  */
 trait DefaultShutdown {
   this: TestKit with BeforeAndAfterAll =>
 

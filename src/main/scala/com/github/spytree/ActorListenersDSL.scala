@@ -8,7 +8,7 @@ import scala.concurrent.Await
 
 object ActorListenersDSL {
 
-  def propByNode(node: NodeBuilder) = {
+  def propByNode(node: NodeBuilder):Props = {
     val implementation = node.implementation
     implementation match {
       case Some(imp) => CustomImplementationActor.props(node.listener.get, node.children, node.implementation.get)
@@ -34,7 +34,7 @@ object ActorListenersDSL {
    * @param children
    */
   class SilentActor(children: List[NodeBuilder]) extends Actor with ChildCreator with ActorLogging {
-    println(akka.serialization.Serialization.serializedActorPath(self))
+    log.debug(akka.serialization.Serialization.serializedActorPath(self))
 
     override def default: Receive = {
       case message: String => log.info(message)
@@ -44,7 +44,7 @@ object ActorListenersDSL {
   }
 
   object SilentActor {
-    def props(children: List[NodeBuilder]) = Props(classOf[SilentActor], children)
+    def props(children: List[NodeBuilder]):Props = Props(classOf[SilentActor], children)
   }
 
 
@@ -56,7 +56,7 @@ object ActorListenersDSL {
   class CustomImplementationActor(children: List[NodeBuilder], implementation: Receive, listener: Option[ActorRef]) extends Actor
   with ChildCreator with ActorLogging with ReceivePipeline {
 
-    println(akka.serialization.Serialization.serializedActorPath(self))
+    log.debug(akka.serialization.Serialization.serializedActorPath(self))
 
     private def respond: Actor.Receive = {
       case message: Any =>
@@ -65,15 +65,9 @@ object ActorListenersDSL {
         message
     }
 
-//    pipelineInner {
-//      case msg: Any =>
-//        println("Message:" + msg)
-//        val path = akka.serialization.Serialization.serializedActorPath(self)
-//        listener.get ! Response(path, msg)
-//    }
 
     override def default: Actor.Receive = {
-      implementation
+      implementation()
       listener match {
         case Some(ref) => respond andThen implementation
         case None => implementation
@@ -86,8 +80,8 @@ object ActorListenersDSL {
   }
 
   object CustomImplementationActor {
-    def props(listener: ActorRef, children: List[NodeBuilder], implementation: Receive) = Props(classOf[CustomImplementationActor],
-      children, implementation, Option(listener))
+    def props(listener: ActorRef, children: List[NodeBuilder], implementation: Receive):Props =
+      Props(classOf[CustomImplementationActor],children, implementation, Option(listener))
   }
 
 
@@ -97,7 +91,7 @@ object ActorListenersDSL {
    * @param listener - listener to respond to
    */
   class RespondingActor(children: List[NodeBuilder], listener: ActorRef) extends Actor with ChildCreator with ActorLogging {
-    println(akka.serialization.Serialization.serializedActorPath(self))
+    log.debug(akka.serialization.Serialization.serializedActorPath(self))
 
     override def default: Actor.Receive = {
       case message: Any =>
@@ -109,7 +103,8 @@ object ActorListenersDSL {
   }
 
   object RespondingActor {
-    def props(children: List[NodeBuilder], listener: ActorRef) = Props(classOf[RespondingActor], children, listener)
+    def props(children: List[NodeBuilder], listener: ActorRef):Props =
+      Props(classOf[RespondingActor], children, listener)
   }
 
   case class NodeBuilder(path: String, listener: Option[ActorRef] = None,
@@ -125,14 +120,14 @@ object ActorListenersDSL {
      * @param f
      * @return
      */
-    def >>(f: => List[NodeBuilder]) = copy(children = f)
+    def >>(f: => List[NodeBuilder]):NodeBuilder = copy(children = f)
 
     /**
      * Concatenate to another NodeBuilder
      * @param that
      * @return
      */
-    def ::(that: NodeBuilder) = this :: that :: Nil
+    def ::(that: NodeBuilder):List[NodeBuilder] = this :: that :: Nil
 
     /**
      * Create actors in the actor system based on NodeBuilder
@@ -147,7 +142,7 @@ object ActorListenersDSL {
 
 import scala.concurrent.duration._
 
-      implicit val timeout = Timeout(5 seconds)
+      implicit val timeout = Timeout(5.seconds)
 
       Await.ready(rootRef ? GetStatus, Duration.Inf)
     }
@@ -156,11 +151,13 @@ import scala.concurrent.duration._
   implicit def NodeBuilder2ListOfNodeBuilders(value: NodeBuilder): List[NodeBuilder] = List(value)
 
   implicit class NodeDomain(underlying: String) {
-    def replyTo(listener: ActorRef): NodeBuilder = NodeBuilder(path = underlying, Some(listener), implementation = None)
+    def replyTo(listener: ActorRef): NodeBuilder =
+      NodeBuilder(path = underlying, Some(listener), implementation = None)
 
-    def withImplementation(implementation: Receive): NodeBuilder = NodeBuilder(path = underlying, listener = None, Some(implementation))
+    def withImplementation(implementation: Receive): NodeBuilder =
+      NodeBuilder(path = underlying, listener = None, Some(implementation))
 
-    def >>(that: List[NodeBuilder]) = NodeBuilder(path = underlying, None, children = that)
+    def >>(that: List[NodeBuilder]):NodeBuilder = NodeBuilder(path = underlying, None, children = that)
   }
 
 
