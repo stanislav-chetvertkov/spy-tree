@@ -11,11 +11,12 @@ Usage
 It can be handy to test 'actorSelection' calls when it has nested structure
 like /parent/child/grandchild and so on
 
-val testTree = "parent" >> { "child" >>  {"grandchild" replyTo self} }
+``` import com.github.spytree.ActorListenersDSL._
+val testTree = "parent" >> { "child" >>  {"grandchild" replyTo self} }```
 
 then call 
 
-testTree.materialize which is a blocking call, so can wait for until the hierarchy is created
+```testTree.materialize``` which is a blocking call, so can wait for until the hierarchy is created
 
 ## Using default implementation
 
