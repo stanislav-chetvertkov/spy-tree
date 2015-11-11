@@ -15,7 +15,7 @@ with WordSpecLike with Matchers with BeforeAndAfterAll with DefaultShutdown {
 
       import com.github.spytree.ActorListenersDSL._
 
-      ("generatorManager" >> {"sipRouter" replyTo self}).materialize
+      ("generatorManager" \ {"sipRouter" replyTo self}).materialize
 
       val fakeSender: ActorRef = system.actorOf(FakeSenderActor.props("/user/generatorManager/sipRouter", "Ping"))
 
@@ -33,9 +33,9 @@ with WordSpecLike with Matchers with BeforeAndAfterAll with DefaultShutdown {
 
       import com.github.spytree.ActorListenersDSL._
 
-      ("root" >> {
-        "parent" >> {
-          ("child-1".replyTo(self) >> {"grand-child-1" replyTo self}) ::
+      ("root" \ {
+        "parent" \ {
+          ("child-1".replyTo(self) \ {"grand-child-1" replyTo self}) ::
           ("child-2" replyTo self)
         }
       }).materialize
@@ -56,7 +56,7 @@ with WordSpecLike with Matchers with BeforeAndAfterAll with DefaultShutdown {
     "handle custom implementation" in {
       import com.github.spytree.ActorListenersDSL._
 
-      val tree = "parent" >> {
+      val tree = "parent" \ {
         "child" replyTo self withImplementation {
           case message: Any =>
             self ! "PONG"

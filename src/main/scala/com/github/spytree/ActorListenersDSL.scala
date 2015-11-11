@@ -11,7 +11,8 @@ object ActorListenersDSL {
   def propByNode(node: NodeBuilder):Props = {
     val implementation = node.implementation
     implementation match {
-      case Some(imp) => CustomImplementationActor.props(node.listener.get, node.children, node.implementation.get)
+      case Some(imp) =>
+        CustomImplementationActor.props(node.listener.get, node.children, node.implementation.get)
       case None => node.listener match {
         case Some(l) => RespondingActor.props(node.children, l)
         case None => SilentActor.props(node.children)
@@ -106,46 +107,6 @@ object ActorListenersDSL {
       Props(classOf[RespondingActor], children, listener)
   }
 
-  case class NodeBuilder(path: String, listener: Option[ActorRef] = None,
-                         implementation: Option[Receive] = None,
-                         children: List[NodeBuilder] = List()) {
-
-    def withListener(listener: ActorRef): NodeBuilder = copy(listener = Some(listener))
-
-    def withImplementation(implementation: Receive): NodeBuilder = copy(implementation = Some(implementation))
-
-    /**
-     * Specify children of the actor in the provided block
-     * @param f
-     * @return
-     */
-    def >>(f: => List[NodeBuilder]):NodeBuilder = copy(children = f)
-
-    /**
-     * Concatenate to another NodeBuilder
-     * @param that
-     * @return
-     */
-    def ::(that: NodeBuilder):List[NodeBuilder] = this :: that :: Nil
-
-    /**
-     * Create actors in the actor system based on NodeBuilder
-     * @param system - actor system for materialisation
-     *
-     *               Note: this is a blocking call - it returns when the hierarchy is completely initialize
-     */
-    def materialize(implicit system: ActorSystem): Unit = {
-      val rootRef = system.actorOf(propByNode(this), path)
-      import akka.pattern.ask
-      import akka.util.Timeout
-
-import scala.concurrent.duration._
-
-      implicit val timeout = Timeout(5.seconds)
-
-      Await.ready(rootRef ? GetStatus, Duration.Inf)
-    }
-  }
 
   implicit def NodeBuilder2ListOfNodeBuilders(value: NodeBuilder): List[NodeBuilder] = List(value)
 
@@ -156,7 +117,7 @@ import scala.concurrent.duration._
     def withImplementation(implementation: Receive): NodeBuilder =
       NodeBuilder(path = underlying, listener = None, Some(implementation))
 
-    def >>(that: List[NodeBuilder]):NodeBuilder = NodeBuilder(path = underlying, None, children = that)
+    def \(that: List[NodeBuilder]):NodeBuilder = NodeBuilder(path = underlying, None, children = that)
   }
 
 
