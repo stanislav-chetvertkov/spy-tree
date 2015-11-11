@@ -3,6 +3,7 @@ package com.github.spytree
 import akka.actor.Actor.Receive
 import akka.actor._
 import akka.contrib.pattern.ReceivePipeline
+import akka.testkit.TestKit
 
 object ActorListenersDSL {
 
@@ -117,5 +118,17 @@ object ActorListenersDSL {
     def \(that: List[NodeBuilder]):NodeBuilder = NodeBuilder(path = underlying, None, children = that)
   }
 
+  /**
+    * Allows to shutdown actor gracefully
+    */
+  trait GracefulShutdown {
+    this:TestKit =>
+
+    def shutdownGracefully(ref:ActorRef):Terminated = {
+      watch(ref)
+      ref ! PoisonPill
+      expectTerminated(ref)
+    }
+  }
 
 }
