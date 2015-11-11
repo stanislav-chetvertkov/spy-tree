@@ -18,17 +18,28 @@ val testTree = "parent" >> { "child" >>  {"grandchild" replyTo self} }
 
 then call 
 
-```scala 
-testTree.materialize``` 
+```
+testTree.materialize
+```
+
 which is a blocking call, so can wait for until the hierarchy is created
 
 call to 
-```scala materialize``` 
+```scala 
+materialize
+``` 
 will return ActorRef for Hierarchy's root actor
 
 Hierarchy can be destroyed when no more needed by calling
 
-```scala shutdownGracefully(rootActorRef)``` of ```scala trait GracefulShutdown``` which needs to be mixed in to your specs
+```scala 
+shutdownGracefully(rootActorRef)
+``` 
+of 
+```scala 
+trait GracefulShutdown
+``` 
+which needs to be mixed in to your specs
 
 ## Using default implementation
 
