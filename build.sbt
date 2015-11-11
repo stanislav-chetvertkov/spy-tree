@@ -10,12 +10,14 @@ resolvers += "Typesafe repository mwn" at "http://repo.typesafe.com/typesafe/mav
 
 resolvers += "Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/"
 
+val akkaVersion = "2.4.0"
+
 libraryDependencies ++= Seq(
-  "com.typesafe.akka" %% "akka-testkit" % "2.4-M3",
+  "com.typesafe.akka" %% "akka-testkit" % akkaVersion,
 
-  "com.typesafe.akka" %% "akka-actor" % "2.4-M3",
+  "com.typesafe.akka" %% "akka-actor" % akkaVersion,
 
-  "com.typesafe.akka" %% "akka-contrib" % "2.4-M3",
+  "com.typesafe.akka" %% "akka-contrib" % akkaVersion,
 
   "org.scalatest" %% "scalatest" % "2.2.4")
 
