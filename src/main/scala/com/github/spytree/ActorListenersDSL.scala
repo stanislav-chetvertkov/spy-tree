@@ -8,8 +8,7 @@ import akka.testkit.TestKit
 object ActorListenersDSL {
 
   def propByNode(node: NodeBuilder):Props = {
-    val implementation = node.implementation
-    implementation match {
+    node.implementation match {
       case Some(imp) =>
         CustomImplementationActor.props(node.listener.get, node.children, node.implementation.get)
       case None => node.listener match {
@@ -118,17 +117,6 @@ object ActorListenersDSL {
     def \(that: List[NodeBuilder]):NodeBuilder = NodeBuilder(path = underlying, None, children = that)
   }
 
-  /**
-    * Allows to shutdown actor gracefully
-    */
-  trait GracefulShutdown {
-    this:TestKit =>
 
-    def shutdownGracefully(ref:ActorRef):Terminated = {
-      watch(ref)
-      ref ! PoisonPill
-      expectTerminated(ref)
-    }
-  }
 
 }

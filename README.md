@@ -11,12 +11,19 @@ Usage
 It can be handy to test 'actorSelection' calls when it has nested structure
 like /parent/child/grandchild and so on
 
-``` import com.github.spytree.ActorListenersDSL._
+```scala 
+import com.github.spytree.ActorListenersDSL._
 val testTree = "parent" >> { "child" >>  {"grandchild" replyTo self} }```
 
 then call 
 
 ```testTree.materialize``` which is a blocking call, so can wait for until the hierarchy is created
+
+call to ```materialize``` will return ActorRef for Hierarchy's root actor
+
+Hierarchy can be destroyed when no more needed by calling
+
+```shutdownGracefully(rootActorRef)``` of ```trait GracefulShutdown``` which needs to be mixed in to your specs
 
 ## Using default implementation
 
@@ -33,3 +40,7 @@ Sends both "PONG"(custom part) and actual message
         }
       }
 ```
+
+####TODO
+
+add creation of actors from Props into DSL

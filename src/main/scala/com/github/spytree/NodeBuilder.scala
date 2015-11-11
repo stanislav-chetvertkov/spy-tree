@@ -34,7 +34,7 @@ case class NodeBuilder(path: String, listener: Option[ActorRef] = None,
   def ::(that: NodeBuilder):List[NodeBuilder] = this :: that :: Nil
 
   /**
-    * Create actors in the actor system based on NodeBuilder
+    * Creates actors in the actor system based on NodeBuilder
     * @param system - actor system for materialisation
     *
     * Note: this is a blocking call - it returns when the hierarchy is completely initialize

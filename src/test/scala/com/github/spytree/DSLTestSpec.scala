@@ -2,6 +2,7 @@ package com.github.spytree
 
 import akka.actor._
 import akka.testkit.{DefaultTimeout, ImplicitSender, TestKit}
+import com.github.spytree.helpers.DefaultShutdown
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
 

@@ -1,4 +1,4 @@
-package com.github.spytree
+package com.github.spytree.helpers
 
 import akka.testkit.TestKit
 import org.scalatest.BeforeAndAfterAll
