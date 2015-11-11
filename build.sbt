@@ -1,10 +1,10 @@
 name := "spytree"
 
-version := "0.01"
+version := "0.1.0"
 
 organization in ThisBuild := "com.github"
 
-scalaVersion := "2.11.6"
+scalaVersion := "2.11.7"
 
 resolvers += "Typesafe repository mwn" at "http://repo.typesafe.com/typesafe/maven-releases/"
 

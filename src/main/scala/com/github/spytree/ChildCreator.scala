@@ -1,7 +1,6 @@
 package com.github.spytree
 
 import akka.actor.{ActorRef, Actor}
-import com.github.spytree.ActorListenersDSL.NodeBuilder
 
 /**
  * used for requesting test hierarchy readiness status

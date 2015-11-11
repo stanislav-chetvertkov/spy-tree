@@ -4,8 +4,6 @@ import akka.actor.Actor.Receive
 import akka.actor._
 import akka.contrib.pattern.ReceivePipeline
 
-import scala.concurrent.Await
-
 object ActorListenersDSL {
 
   def propByNode(node: NodeBuilder):Props = {
@@ -63,7 +61,6 @@ object ActorListenersDSL {
       case message: Any =>
         val path = akka.serialization.Serialization.serializedActorPath(self)
         listener.get ! Response(path, message)
-        message
     }
 
     override def default: Actor.Receive = {
