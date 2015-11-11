@@ -5,6 +5,8 @@ import akka.actor._
 import akka.contrib.pattern.ReceivePipeline
 import akka.testkit.TestKit
 
+import scala.language.implicitConversions
+
 object ActorListenersDSL {
 
   def propByNode(node: NodeBuilder):Props = {
@@ -64,7 +66,7 @@ object ActorListenersDSL {
     }
 
     override def default: Actor.Receive = {
-      implementation()
+      implementation(())
       listener match {
         case Some(ref) => respond andThen implementation
         case None => implementation
@@ -88,7 +90,7 @@ object ActorListenersDSL {
    * @param listener - listener to respond to
    */
   class RespondingActor(children: List[NodeBuilder], listener: ActorRef) extends Actor with ChildCreator with ActorLogging {
-    println(akka.serialization.Serialization.serializedActorPath(self))
+    log.info(akka.serialization.Serialization.serializedActorPath(self))
 
     override def default: Actor.Receive = {
       case message: Any =>

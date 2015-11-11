@@ -12,6 +12,8 @@ resolvers += "Typesafe repository" at "http://repo.typesafe.com/typesafe/release
 
 val akkaVersion = "2.4.0"
 
+scalacOptions in ThisBuild ++= Seq("-unchecked", "-deprecation", "-feature")
+
 libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-testkit" % akkaVersion,
 
