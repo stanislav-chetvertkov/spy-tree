@@ -1,6 +1,6 @@
 name := "spytree"
 
-version := "0.1.0"
+version := "0.1.1"
 
 organization in ThisBuild := "com.github"
 
@@ -23,6 +23,14 @@ libraryDependencies ++= Seq(
 
   "org.scalatest" %% "scalatest" % "2.2.4")
 
+
+publishTo := {
+  val nexus = "http://nexus.dins.ru:8888/"
+  if (isSnapshot.value)
+    Some("snapshots" at nexus + "nexus/content/repositories/snapshots")
+  else
+    Some("releases"  at nexus + "nexus/content/repositories/releases")
+}
 
 
 
