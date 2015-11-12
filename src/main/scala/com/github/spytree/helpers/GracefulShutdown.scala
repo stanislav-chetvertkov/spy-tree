@@ -19,4 +19,12 @@ trait GracefulShutdown {
     ref ! PoisonPill
     expectTerminated(ref)
   }
+
+  def shutdownGracefully(refs:ActorRef*):Unit = {
+    refs.foreach{ ref =>
+      watch(ref)
+      ref ! PoisonPill
+      expectTerminated(ref)
+    }
+  }
 }
