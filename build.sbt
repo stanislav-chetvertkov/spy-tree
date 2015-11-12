@@ -34,6 +34,7 @@ publishTo := {
     Some("releases"  at nexus + "nexus/content/repositories/releases")
 }
 
+credentials += Credentials(Path.userHome / ".ivy2" / ".credentials")
 
 
 
