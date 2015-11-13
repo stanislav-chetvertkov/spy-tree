@@ -2,21 +2,22 @@ package com.github.spytree
 
 import akka.actor._
 import akka.testkit.{DefaultTimeout, ImplicitSender, TestKit}
-import com.github.spytree.helpers.DefaultShutdown
+import com.github.spytree.helpers.{GracefulShutdown, DefaultShutdown}
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
 
 class DSLTestSpec extends TestKit(ActorSystem("actorSystem"))
 with DefaultTimeout with ImplicitSender
-with WordSpecLike with Matchers with BeforeAndAfterAll with DefaultShutdown {
+with WordSpecLike with Matchers with BeforeAndAfterAll with DefaultShutdown with GracefulShutdown {
 
+  import com.github.spytree.ActorListenersDSL._
 
   "The DSL" must {
     "work with simple hierarchies" in {
 
-      import com.github.spytree.ActorListenersDSL._
-
-      ("generatorManager" \ {"sipRouter" replyTo self}).materialize
+      val rootRef = ("generatorManager" \ {
+        "sipRouter" replyTo self
+      }).materialize
 
       val fakeSender: ActorRef = system.actorOf(FakeSenderActor.props("/user/generatorManager/sipRouter", "Ping"))
 
@@ -28,19 +29,19 @@ with WordSpecLike with Matchers with BeforeAndAfterAll with DefaultShutdown {
           message should be("Ping")
       }
 
+      shutdownGracefully(rootRef)
     }
 
     "2 repliers case" in {
 
-      import com.github.spytree.ActorListenersDSL._
-
-      ("root" \ {
+      val rootRef = ("root" \ {
         "parent" \ {
-          ("child-1".replyTo(self) \ {"grand-child-1" replyTo self}) ::
-          ("child-2" replyTo self)
+          ("child-1".replyTo(self) \ {
+            "grand-child-1" replyTo self
+          }) ::
+            ("child-2" replyTo self)
         }
       }).materialize
-
 
       val fakeSender: ActorRef = system.actorOf(FakeSenderActor.props("/user/root/parent/child-1/grand-child-1", "Ping"))
 
@@ -52,10 +53,32 @@ with WordSpecLike with Matchers with BeforeAndAfterAll with DefaultShutdown {
           message should be("Ping")
       }
 
+      shutdownGracefully(rootRef)
+    }
+
+    "handle custom implementation with state" in {
+      import akka.actor.ActorDSL._
+
+
+      val rootRef = ("parent" \ {
+        "child" replyTo self withActor {
+          new Act {
+            var counter: Int = 0
+            become {
+              case "hello" =>
+                counter += 1
+                sender() ! counter
+            }
+          }
+        }
+      }).materialize
+
+      shutdownGracefully(rootRef)
+
     }
 
     "handle custom implementation" in {
-      import com.github.spytree.ActorListenersDSL._
+
 
       val tree = "parent" \ {
         "child" replyTo self withImplementation {
@@ -69,8 +92,8 @@ with WordSpecLike with Matchers with BeforeAndAfterAll with DefaultShutdown {
 
       fakeSender ! Activate
 
-      var gotSpyReply:Boolean = false
-      var gotCustomReply:Boolean = false
+      var gotSpyReply: Boolean = false
+      var gotCustomReply: Boolean = false
 
       expectMsgPF() {
         case Response(path, message) =>
