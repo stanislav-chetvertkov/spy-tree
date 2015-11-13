@@ -4,15 +4,15 @@ import akka.actor.Actor.Receive
 import akka.actor._
 import akka.contrib.pattern.ReceivePipeline
 import akka.testkit.TestKit
-import com.github.spytree.actors.{WrapperForPropsActor, SilentActor, RespondingActor, CustomImplementationActor}
+import com.github.spytree.actors._
 
 import scala.language.implicitConversions
 
 object ActorListenersDSL {
 
   def propByNode(node: NodeBuilder):Props = {
-    if (node.props.isDefined && node.listener.isDefined){
-      WrapperForPropsActor.props(node.children, node.props.get, node.listener.get)
+    if (node.proxyTo.isDefined && node.listener.isDefined){
+      ProxyToActor.props(node.children, node.proxyTo.get, node.listener.get)
     } else {
       node.implementation match {
         case Some(imp) =>

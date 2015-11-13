@@ -59,22 +59,30 @@ with WordSpecLike with Matchers with BeforeAndAfterAll with DefaultShutdown with
     "handle custom implementation with state" in {
       import akka.actor.ActorDSL._
 
+      val incrementActor = actor(new Act {
+        var counter: Int = 0
+        become {
+          case "hello" =>
+            counter += 1
+            sender() ! counter
+        }
+      })
+
+      val selfRef = self
 
       val rootRef = ("parent" \ {
-        "child" replyTo self withActor {
-          new Act {
-            var counter: Int = 0
-            become {
-              case "hello" =>
-                counter += 1
-                sender() ! counter
-            }
-          }
-        }
+        "child" replyTo selfRef proxyTo incrementActor
       }).materialize
 
-      shutdownGracefully(rootRef)
+      system.actorSelection("/user/parent/child") ! "hello"
 
+      val message = expectMsgClass(classOf[Response[String]])
+
+      message.message shouldBe "hello"
+
+      val message2 = expectMsgClass(classOf[Int])
+
+      shutdownGracefully(rootRef)
     }
 
     "handle custom implementation" in {

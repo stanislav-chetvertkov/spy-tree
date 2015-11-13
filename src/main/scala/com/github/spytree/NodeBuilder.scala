@@ -15,6 +15,7 @@ import scala.reflect.ClassTag
 case class NodeBuilder(path: String,
                        listener: Option[ActorRef] = None,
                        implementation: Option[Receive] = None,
+                        proxyTo:Option[ActorRef] = None,
                        props: Option[Props] = None,
                        children: List[NodeBuilder] = List()) {
 
@@ -22,7 +23,11 @@ case class NodeBuilder(path: String,
 
   def withImplementation(implementation: Receive): NodeBuilder = copy(implementation = Some(implementation))
 
-  def withActor[T <: Actor: ClassTag](actor: => T): NodeBuilder = {
+  def proxyTo(ref: ActorRef): NodeBuilder = {
+    copy(proxyTo = Some(ref))
+  }
+
+  def withActorProps[T <: Actor: ClassTag](actor: => T): NodeBuilder = {
     // configure dispatcher/mailbox based on runtime class
     val classOfActor = implicitly[ClassTag[T]].runtimeClass
     val props = mkProps(classOfActor, () => actor)
