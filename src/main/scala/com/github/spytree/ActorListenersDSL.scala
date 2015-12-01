@@ -36,16 +36,18 @@ object ActorListenersDSL {
 
   implicit def NodeBuilder2ListOfNodeBuilders(value: NodeBuilder): List[NodeBuilder] = List(value)
 
-  implicit class NodeDomain(underlying: String) {
+  /**
+    * Extension class that allows to create node domain from string
+    * @param it
+    */
+  implicit class NodeDomain(it: String) {
     def replyTo(listener: ActorRef): NodeBuilder =
-      NodeBuilder(path = underlying, Some(listener), implementation = None)
+      NodeBuilder(path = it, Some(listener), implementation = None)
 
     def withImplementation(implementation: Receive): NodeBuilder =
-      NodeBuilder(path = underlying, listener = None, Some(implementation))
+      NodeBuilder(path = it, listener = None, Some(implementation))
 
-    def \(that: List[NodeBuilder]):NodeBuilder = NodeBuilder(path = underlying, None, children = that)
+    def /(that: List[NodeBuilder]):NodeBuilder = NodeBuilder(path = it, None, children = that)
   }
-
-
 
 }

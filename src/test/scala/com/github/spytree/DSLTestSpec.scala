@@ -15,10 +15,7 @@ with WordSpecLike with Matchers with BeforeAndAfterAll with DefaultShutdown with
   "The DSL" must {
     "work with simple hierarchies" in {
 
-      val rootRef = ("generatorManager" \ {
-        "sipRouter" replyTo self
-      }).materialize
-
+      val rootRef = ("generatorManager" / {"sipRouter" replyTo self}).materialize
       val fakeSender: ActorRef = system.actorOf(FakeSenderActor.props("/user/generatorManager/sipRouter", "Ping"))
 
       fakeSender ! Activate
@@ -34,9 +31,9 @@ with WordSpecLike with Matchers with BeforeAndAfterAll with DefaultShutdown with
 
     "2 repliers case" in {
 
-      val rootRef = ("root" \ {
-        "parent" \ {
-          ("child-1".replyTo(self) \ {
+      val rootRef = ("root" / {
+        "parent" / {
+          ("child-1".replyTo(self) / {
             "grand-child-1" replyTo self
           }) ::
             ("child-2" replyTo self)
@@ -70,9 +67,7 @@ with WordSpecLike with Matchers with BeforeAndAfterAll with DefaultShutdown with
 
       val selfRef = self
 
-      val rootRef = ("parent" \ {
-        "child" replyTo selfRef proxyTo incrementActor
-      }).materialize
+      val rootRef = ("parent" / {"child" replyTo self proxyTo incrementActor}).materialize
 
       system.actorSelection("/user/parent/child") ! "hello"
 
@@ -88,7 +83,7 @@ with WordSpecLike with Matchers with BeforeAndAfterAll with DefaultShutdown with
     "handle custom implementation" in {
 
 
-      val tree = "parent" \ {
+      val tree = "parent" / {
         "child" replyTo self withImplementation {
           case message: Any =>
             self ! "PONG"
@@ -109,7 +104,6 @@ with WordSpecLike with Matchers with BeforeAndAfterAll with DefaultShutdown with
           message should be("Ping")
           gotSpyReply = true
         case "PONG" =>
-          println("PONG")
           gotCustomReply = true
       }
 
@@ -119,14 +113,11 @@ with WordSpecLike with Matchers with BeforeAndAfterAll with DefaultShutdown with
           message should be("Ping")
           gotSpyReply = true
         case "PONG" =>
-          println("PONG")
           gotCustomReply = true
       }
 
       gotCustomReply shouldBe true
       gotSpyReply shouldBe true
-
-
     }
 
   }
