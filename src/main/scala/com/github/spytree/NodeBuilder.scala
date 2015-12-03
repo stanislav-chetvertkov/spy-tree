@@ -41,7 +41,7 @@ case class NodeBuilder(path: String,
     * @param that
     * @return
     */
-  def ::(that: NodeBuilder):List[NodeBuilder] = this :: that :: Nil
+  def ~(that: NodeBuilder):List[NodeBuilder] = this :: that :: Nil
 
   /**
     * Creates actors in the actor system based on NodeBuilder

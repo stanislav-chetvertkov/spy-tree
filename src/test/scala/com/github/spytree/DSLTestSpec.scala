@@ -16,17 +16,19 @@ with WordSpecLike with Matchers with BeforeAndAfterAll with DefaultShutdown with
     "work with simple hierarchies" in {
 
       val rootRef = ("generatorManager" / {"sipRouter" replyTo self}).materialize
-      val fakeSender: ActorRef = system.actorOf(FakeSenderActor.props("/user/generatorManager/sipRouter", "Ping"))
 
-      fakeSender ! Activate
+      loan(rootRef){
+        val fakeSender: ActorRef = system.actorOf(FakeSenderActor.props("/user/generatorManager/sipRouter", "Ping"))
 
-      expectMsgPF() {
-        case Response(path, message) =>
-          path.contains("/generatorManager/sipRouter") should be
-          message should be("Ping")
+        fakeSender ! Activate
+
+        expectMsgPF() {
+          case Response(path, message) =>
+            path.contains("/generatorManager/sipRouter") should be
+            message should be("Ping")
+        }
+
       }
-
-      shutdownGracefully(rootRef)
     }
 
     "2 repliers case" in {
@@ -35,22 +37,22 @@ with WordSpecLike with Matchers with BeforeAndAfterAll with DefaultShutdown with
         "parent" / {
           ("child-1".replyTo(self) / {
             "grand-child-1" replyTo self
-          }) ::
+          }) ~
             ("child-2" replyTo self)
         }
       }).materialize
 
-      val fakeSender: ActorRef = system.actorOf(FakeSenderActor.props("/user/root/parent/child-1/grand-child-1", "Ping"))
+      loan(rootRef){
+        val fakeSender: ActorRef = system.actorOf(FakeSenderActor.props("/user/root/parent/child-1/grand-child-1", "Ping"))
 
-      fakeSender ! Activate
+        fakeSender ! Activate
 
-      expectMsgPF() {
-        case Response(path, message) =>
-          path.contains("/root/parent/grand-child-1") should be
-          message should be("Ping")
+        expectMsgPF() {
+          case Response(path, message) =>
+            path.contains("/root/parent/grand-child-1") should be
+            message should be("Ping")
+        }
       }
-
-      shutdownGracefully(rootRef)
     }
 
     "handle custom implementation with state" in {
@@ -65,19 +67,17 @@ with WordSpecLike with Matchers with BeforeAndAfterAll with DefaultShutdown with
         }
       })
 
-      val selfRef = self
-
       val rootRef = ("parent" / {"child" replyTo self proxyTo incrementActor}).materialize
 
-      system.actorSelection("/user/parent/child") ! "hello"
+      loan(rootRef){
+        system.actorSelection("/user/parent/child") ! "hello"
 
-      val message = expectMsgClass(classOf[Response[String]])
+        val message = expectMsgClass(classOf[Response[String]])
 
-      message.message shouldBe "hello"
+        message.message shouldBe "hello"
 
-      val message2 = expectMsgClass(classOf[Int])
-
-      shutdownGracefully(rootRef)
+        val message2 = expectMsgClass(classOf[Int])
+      }
     }
 
     "handle custom implementation" in {

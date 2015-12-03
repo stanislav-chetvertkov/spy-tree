@@ -27,4 +27,13 @@ trait GracefulShutdown {
       expectTerminated(ref)
     }
   }
+
+  def loan(refs:ActorRef*)(block: => Unit) = {
+    block
+    refs.foreach{ ref =>
+      watch(ref)
+      ref ! PoisonPill
+      expectTerminated(ref)
+    }
+  }
 }
