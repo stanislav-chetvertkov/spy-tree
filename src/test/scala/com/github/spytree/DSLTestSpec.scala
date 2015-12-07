@@ -37,8 +37,7 @@ with WordSpecLike with Matchers with BeforeAndAfterAll with DefaultShutdown with
         "parent" / {
           ("child-1".replyTo(self) / {
             "grand-child-1" replyTo self
-          }) ~
-            ("child-2" replyTo self)
+          }) ~ ("child-2" replyTo self) ~ ("child-3" replyTo self)
         }
       }).materialize
 

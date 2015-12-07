@@ -10,8 +10,13 @@ import scala.language.implicitConversions
 
 object ActorListenersDSL {
 
-  def propByNode(node: NodeBuilder):Props = {
-    if (node.proxyTo.isDefined && node.listener.isDefined){
+
+  implicit class NBList(it: List[NodeBuilder]) {
+    def ~(that: NodeBuilder): List[NodeBuilder] = that +: it
+  }
+
+  def propByNode(node: NodeBuilder): Props = {
+    if (node.proxyTo.isDefined && node.listener.isDefined) {
       ProxyToActor.props(node.children, node.proxyTo.get, node.listener.get)
     } else {
       node.implementation match {
@@ -26,12 +31,12 @@ object ActorListenersDSL {
   }
 
   /**
-   * Response from test actor
-   * Should be used for validating listener
-   *
-   * @param path - path in the actor system
-   * @param message - message that actor received
-   */
+    * Response from test actor
+    * Should be used for validating listener
+    *
+    * @param path - path in the actor system
+    * @param message - message that actor received
+    */
   case class Response[T](path: String, message: T)
 
   implicit def NodeBuilder2ListOfNodeBuilders(value: NodeBuilder): List[NodeBuilder] = List(value)
@@ -47,7 +52,7 @@ object ActorListenersDSL {
     def withImplementation(implementation: Receive): NodeBuilder =
       NodeBuilder(path = it, listener = None, Some(implementation))
 
-    def /(that: List[NodeBuilder]):NodeBuilder = NodeBuilder(path = it, None, children = that)
+    def /(that: List[NodeBuilder]): NodeBuilder = NodeBuilder(path = it, None, children = that)
   }
 
 }
