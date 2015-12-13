@@ -4,7 +4,7 @@ import akka.actor._
 import akka.testkit._
 import com.github.spytree.helpers.{GracefulShutdown, DefaultShutdown}
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
-
+import scala.concurrent.duration._
 
 class DSLTestSpec extends TestKit(ActorSystem("actorSystem"))
 with DefaultTimeout with ImplicitSender
@@ -14,7 +14,6 @@ with WordSpecLike with Matchers with BeforeAndAfterAll with DefaultShutdown with
 
   "The DSL" must {
     "work with simple hierarchies" in {
-
       val rootRef = ("generatorManager" / {
         "sipRouter" replyTo self
       }).materialize
@@ -24,11 +23,9 @@ with WordSpecLike with Matchers with BeforeAndAfterAll with DefaultShutdown with
 
         fakeSender ! Activate
 
-        val response = expectMsgClass(classOf[Response[String]])
+        val response = this.expectResponse[String]
         response.path.contains("/generatorManager/sipRouter") should be
         response.message should be("Ping")
-
-
       }
     }
 
@@ -75,7 +72,7 @@ with WordSpecLike with Matchers with BeforeAndAfterAll with DefaultShutdown with
     loan(rootRef) {
       system.actorSelection("/user/parent/child") ! "hello"
 
-      val message = expectMsgClass(classOf[Response[String]])
+      val message = this.expectResponse[String]
 
       message.message shouldBe "hello"
 
@@ -85,8 +82,11 @@ with WordSpecLike with Matchers with BeforeAndAfterAll with DefaultShutdown with
 
   "handle custom implementation" in {
 
+    val listener = TestProbe()
+    expectNoMsg(1.second)
+
     val tree = ("parent" / {
-      "child" replyTo self withImplementation {
+      "child" replyTo listener.ref withImplementation {
         case message: Any =>
           self ! "PONG"
       }
@@ -96,31 +96,8 @@ with WordSpecLike with Matchers with BeforeAndAfterAll with DefaultShutdown with
 
     fakeSender ! Activate
 
-    var gotSpyReply: Boolean = false
-    var gotCustomReply: Boolean = false
-
-    expectMsgPF() {
-      case Response(path, message) =>
-        path.contains("/parent/child") should be
-        message should be("Ping")
-        gotSpyReply = true
-      case "PONG" =>
-        gotCustomReply = true
-    }
-
-    expectMsgPF() {
-      case Response(path, message) =>
-        path.contains("/parent/child") should be
-        message should be("Ping")
-        gotSpyReply = true
-      case "PONG" =>
-        gotCustomReply = true
-    }
-
-    gotCustomReply shouldBe true
-    gotSpyReply shouldBe true
-
-
+    listener.expectResponse[String].message shouldBe "Ping"
+    expectMsg("PONG")
   }
 
 

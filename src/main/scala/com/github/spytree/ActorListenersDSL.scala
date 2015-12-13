@@ -3,14 +3,14 @@ package com.github.spytree
 import akka.actor.Actor.Receive
 import akka.actor._
 import akka.contrib.pattern.ReceivePipeline
-import akka.testkit.{TestProbe, TestKit}
+import akka.testkit.{TestKitBase, TestProbe, TestKit}
 import com.github.spytree.actors._
 
 import scala.language.implicitConversions
 
 object ActorListenersDSL {
 
-  implicit class ExpectOps(it: TestKit) {
+  implicit class ExpectOps[A <: TestKitBase](it: A) {
     def expectResponse[T]: Response[T] = it.expectMsgClass(classOf[Response[T]])
 
     import scala.reflect.runtime.universe._
@@ -19,7 +19,6 @@ object ActorListenersDSL {
         if (response.path.contains(from)) Some(response) else None
       case x => None
     }
-
   }
 
 
